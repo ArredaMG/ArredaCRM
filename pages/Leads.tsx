@@ -367,7 +367,7 @@ const Leads: React.FC = () => {
     setIsLoadingCNPJ(false);
   };
 
-  const handleSubmitNew = (e: React.FormEvent) => {
+  const handleSubmitNew = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLead.empresa_nome) {
       alert("Nome da empresa é obrigatório");
