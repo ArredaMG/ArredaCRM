@@ -58,22 +58,7 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <p className="text-sm font-medium text-slate-500 uppercase">Em Produção</p>
-          <div className="flex items-center justify-between">
-            <p className="text-3xl font-bold text-emerald-600 mt-2">{wonDeals}</p>
-            <button
-              onClick={async () => {
-                if (confirm('Deseja importar os dados salvos localmente para o novo banco de dados online?')) {
-                  const { migrateLocalToSupabase } = await import('../services/dataService');
-                  await migrateLocalToSupabase();
-                  alert('Migração concluída! Os dados agora estão no Supabase.');
-                  window.location.reload();
-                }
-              }}
-              className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded border border-slate-200"
-            >
-              🚀 Importar Dados Locais
-            </button>
-          </div>
+          <p className="text-3xl font-bold text-emerald-600 mt-2">{wonDeals}</p>
         </div>
       </div>
 

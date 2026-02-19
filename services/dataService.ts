@@ -1,4 +1,4 @@
-import { Lead, Budget, LeadStatus, CatalogItem } from '../types';
+import { Lead, Budget, LeadStatus, CatalogItem, Project } from '../types';
 import { supabase } from './supabaseClient';
 
 const LEADS_KEY = 'arreda_leads';
@@ -25,7 +25,36 @@ const DEFAULT_BUDGET_VALUES = {
   is_arquivado: false
 };
 
-// --- SUPABASE DATA SERVICE ---
+// --- PROJECTS API ---
+
+export const getProjects = async (): Promise<Project[]> => {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('data_criacao', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching projects:', error);
+    return [];
+  }
+  return data;
+};
+
+export const saveProject = async (project: Project): Promise<void> => {
+  const { error } = await supabase
+    .from('projects')
+    .upsert(project);
+
+  if (error) throw error;
+};
+
+export const deleteProject = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+};
 
 // --- CATALOG API (Auto-Learning) ---
 
@@ -122,35 +151,71 @@ const updateCatalogFromBudget = async (budget: Budget) => {
 // --- LEADS API ---
 
 export const getLeads = async (): Promise<Lead[]> => {
+  // We specify columns explicitly to avoid 'links_adicionais' if it doesn't exist in cache yet
   const { data, error } = await supabase
     .from('leads')
-    .select('*, contacts(*)');
+    .select('id, cnpj, empresa_nome, nome_fantasia, logradouro, bairro, cidade, uf, social_site, social_instagram, social_linkedin, anotacoes, tipo_projeto, status, valor_estimado, data_cadastro, data_retorno, motivo_perda, historico_logs, contacts(*)');
 
   if (error) {
-    console.error('Error fetching leads:', error);
-    return [];
+    console.error('Error fetching leads (trying fallback select):', error);
+    // Fallback to select(*) if explicit list fails, or handle specific error
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('leads')
+      .select('*, contacts(*)');
+
+    if (fallbackError) {
+      console.error('Complete fetch failure:', fallbackError);
+      return [];
+    }
+    return fallbackData;
   }
+
   return data;
 };
 
 export const saveLead = async (lead: Lead): Promise<void> => {
-  const { contacts, ...leadData } = lead;
+  const { contacts, links_adicionais, ...leadData } = lead;
+
+  console.log('Saving lead to Supabase:', lead.id, lead.empresa_nome);
+
+  // Create payload, only adding links_adicionais if it has actual data
+  // This helps avoid "column not found" errors if the DB hasn't been updated yet
+  const payload: any = { ...leadData };
+  if (links_adicionais && links_adicionais.length > 0) {
+    payload.links_adicionais = links_adicionais;
+  }
 
   // 1. Upsert Lead
   const { error: leadError } = await supabase
     .from('leads')
-    .upsert(leadData);
+    .upsert(payload);
 
-  if (leadError) throw leadError;
+  if (leadError) {
+    console.error('Supabase error saving lead:', leadError);
+    // If it's a schema cache error related to links_adicionais, try one last time without it
+    if (leadError.message?.includes('links_adicionais') || leadError.code === '42703' || leadError.message?.includes('column')) {
+      console.warn('Retrying save without links_adicionais column...');
+      const { error: retryError } = await supabase.from('leads').upsert(leadData);
+      if (retryError) throw retryError;
+    } else {
+      throw leadError;
+    }
+  }
 
   // 2. Manage Contacts
-  // Simplified: delete existing and re-insert (fine for small sets)
-  await supabase.from('contacts').delete().eq('lead_id', lead.id);
-  if (contacts.length > 0) {
+  const { error: deleteError } = await supabase.from('contacts').delete().eq('lead_id', lead.id);
+  if (deleteError) {
+    console.warn('Error deleting old contacts (might be new lead):', deleteError);
+  }
+
+  if (contacts && contacts.length > 0) {
     const { error: contactsError } = await supabase
       .from('contacts')
       .insert(contacts.map(c => ({ ...c, lead_id: lead.id })));
-    if (contactsError) throw contactsError;
+    if (contactsError) {
+      console.error('Supabase error saving contacts:', contactsError);
+      throw contactsError;
+    }
   }
 };
 
@@ -174,7 +239,7 @@ export const saveBudget = async (budget: Budget): Promise<void> => {
 
   // 2. Manage Items
   await supabase.from('budget_items').delete().eq('budget_id', budget.id);
-  if (items.length > 0) {
+  if (items && items.length > 0) {
     const { error: itemsError } = await supabase
       .from('budget_items')
       .insert(items.map(i => ({ ...i, budget_id: budget.id })));
@@ -191,47 +256,6 @@ export const deleteBudget = async (id: string): Promise<void> => {
     .delete()
     .eq('id', id);
   if (error) throw error;
-};
-
-// --- MIGRATION UTILITY ---
-
-export const migrateLocalToSupabase = async () => {
-  console.log('Starting migration...');
-
-  // 1. Migrate Leads
-  const localLeads = JSON.parse(localStorage.getItem(LEADS_KEY) || '[]');
-  if (localLeads.length > 0) {
-    console.log(`Migrating ${localLeads.length} leads...`);
-    for (const lead of localLeads) {
-      await saveLead(lead);
-    }
-  }
-
-  // 2. Migrate Budgets
-  const localBudgets = JSON.parse(localStorage.getItem(BUDGETS_KEY) || '[]');
-  if (localBudgets.length > 0) {
-    console.log(`Migrating ${localBudgets.length} budgets...`);
-    for (const budget of localBudgets) {
-      await saveBudget(budget);
-    }
-  }
-
-  // 3. Migrate Catalog
-  const localCatalog = JSON.parse(localStorage.getItem(CATALOG_KEY) || '[]');
-  if (localCatalog.length > 0) {
-    console.log(`Migrating ${localCatalog.length} catalog items...`);
-    for (const item of localCatalog) {
-      const dbItem = {
-        name: item.name,
-        last_price: item.lastPrice,
-        category: item.category,
-        usage_count: item.usageCount
-      };
-      await supabase.from('catalog').upsert(dbItem, { onConflict: 'name' });
-    }
-  }
-
-  console.log('Migration completed successfully!');
 };
 
 // --- INITIALIZATION ---

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getLeads, saveLead, getBudgets, deleteLead } from '../services/dataService';
-import { Lead, LeadStatus, Budget, ProjectType, Contact } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { getLeads, saveLead, getBudgets, deleteLead, getProjects, saveProject, deleteProject, saveBudget } from '../services/dataService';
+import { Lead, LeadStatus, Budget, ProjectType, Contact, Project, SocialLink } from '../types';
 import { formatCurrency } from '../constants';
-import { Plus, Loader2, Layout, List, UserPlus, Archive, Calendar, Mail, Phone, Building2, MousePointerClick, Globe, Linkedin, Instagram, StickyNote, Save, DollarSign, Tag, X, User, AlertTriangle, AlertCircle, Trash2 } from 'lucide-react';
+import { Plus, Loader2, Layout, List, UserPlus, Archive, Calendar, Mail, Phone, Building2, MousePointerClick, Globe, Linkedin, Instagram, StickyNote, Save, DollarSign, Tag, X, User, AlertTriangle, AlertCircle, Trash2, ExternalLink, Briefcase, Link as LinkIcon, Sparkles, Search, RotateCcw } from 'lucide-react';
+
 
 const STATUS_ORDER = [
   LeadStatus.NEW,
@@ -12,15 +14,33 @@ const STATUS_ORDER = [
   LeadStatus.PRODUCTION
 ];
 
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 const Leads: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'kanban' | 'details' | 'archived' | 'new'>('kanban');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'pipeline' | 'directory' | 'details' | 'archived' | 'new'>('pipeline');
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
   // "New Lead" Form State
   const [isLoadingCNPJ, setIsLoadingCNPJ] = useState(false);
-  const [newLead, setNewLead] = useState<Partial<Lead>>({ status: LeadStatus.NEW, tipo_projeto: 'Outro' });
+  const [newLead, setNewLead] = useState<Partial<Lead>>({
+    status: LeadStatus.NEW,
+    tipo_projeto: 'Outro',
+    links_adicionais: []
+  });
   const [initialContact, setInitialContact] = useState<Partial<Contact>>({});
+
+  // "New Project" State
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [projectToCreate, setProjectToCreate] = useState<Partial<Project>>({});
+  const [targetLeadId, setTargetLeadId] = useState<string>('');
 
   // "Details" View State
   const [selectedLeadId, setSelectedLeadId] = useState<string>('');
@@ -28,36 +48,29 @@ const Leads: React.FC = () => {
   const [activeContactIndex, setActiveContactIndex] = useState<number>(0);
 
   // Drag and Drop State
-  const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
+  const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Tab Specific States (moved up to avoid Hook violations)
+  const [directorySearchTerm, setDirectorySearchTerm] = useState('');
+  const [directoryViewMode, setDirectoryViewMode] = useState<'grid' | 'list'>('grid');
+  const [pipelineViewMode, setPipelineViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [pipelineSearchTerm, setPipelineSearchTerm] = useState('');
 
   useEffect(() => {
     refreshData();
   }, []);
 
-  useEffect(() => {
-    if (selectedLeadId) {
-      const found = leads.find(l => l.id === selectedLeadId);
-      if (found) {
-        // Ensure contacts array exists for legacy data
-        const cleanLead = {
-          ...found,
-          contacts: found.contacts || []
-        };
-        setEditingLead(cleanLead);
-        setActiveContactIndex(0);
-      } else {
-        setEditingLead(null);
-      }
-    }
-  }, [selectedLeadId, leads]);
-
   const refreshData = async () => {
     setIsLoading(true);
     try {
-      const leadsData = await getLeads();
-      const budgetsData = await getBudgets();
+      const [leadsData, projectsData, budgetsData] = await Promise.all([
+        getLeads(),
+        getProjects(),
+        getBudgets()
+      ]);
       setLeads(leadsData || []);
+      setProjects(projectsData || []);
       setBudgets(budgetsData || []);
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -101,67 +114,225 @@ const Leads: React.FC = () => {
 
   const isOverdue = (dateString?: string) => {
     if (!dateString) return false;
-    const date = new Date(dateString);
+    const dateParts = dateString.split('-');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dateParts = dateString.split('-');
     const dateObj = new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2]));
     return dateObj < today;
   };
 
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!projectToCreate.titulo || !targetLeadId) return;
+
+    const newProj: Project = {
+      id: generateId(),
+      lead_id: targetLeadId,
+      titulo: projectToCreate.titulo,
+      status: LeadStatus.NEW,
+      valor_estimado: projectToCreate.valor_estimado || 0,
+      contato_responsavel_id: projectToCreate.contato_responsavel_id,
+      data_criacao: new Date().toISOString(),
+      historico_logs: [`[${new Date().toLocaleString()}] Projeto criado.`]
+    };
+
+    try {
+      await saveProject(newProj);
+      setIsProjectModalOpen(false);
+      setProjectToCreate({});
+      await refreshData();
+      setActiveTab('pipeline');
+    } catch (error: any) {
+      console.error("Error creating opportunity:", error);
+      alert(`Erro ao criar oportunidade: ${error.message || 'Verifique se a tabela "projects" existe no seu banco de dados.'}`);
+    }
+  };
+
+  const handleDeleteProject = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm("Tem certeza que deseja excluir permanentemente esta oportunidade?")) {
+      try {
+        await deleteProject(id);
+        await refreshData();
+      } catch (error) {
+        alert("Erro ao excluir oportunidade");
+      }
+    }
+  };
+
+  const handleArchiveProject = async (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm("Deseja arquivar esta oportunidade e seus orçamentos vinculados?")) {
+      try {
+        // 1. Archive the project
+        await saveProject({ ...project, is_arquivado: true });
+
+        // 2. Archive linked budgets
+        const projectBudgets = budgets.filter(b => b.project_id === project.id);
+        for (const budget of projectBudgets) {
+          await saveBudget({ ...budget, is_arquivado: true });
+        }
+
+        await refreshData();
+      } catch (error) {
+        console.error("Error archiving project:", error);
+        alert("Erro ao arquivar oportunidade");
+      }
+    }
+  };
+
+  const handleRestoreProject = async (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // 1. Restore the project
+      await saveProject({ ...project, is_arquivado: false });
+
+      // 2. Restore linked budgets
+      const projectBudgets = budgets.filter(b => b.project_id === project.id);
+      for (const budget of projectBudgets) {
+        await saveBudget({ ...budget, is_arquivado: false });
+      }
+
+      await refreshData();
+      alert("Oportunidade e orçamentos restaurados!");
+    } catch (error) {
+      console.error("Error restoring project:", error);
+      alert("Erro ao restaurar oportunidade");
+    }
+  };
+
   // --- ACTIONS ---
+
+  useEffect(() => {
+    if (selectedLeadId) {
+      const found = leads.find(l => l.id === selectedLeadId);
+      if (found) {
+        setEditingLead({
+          ...found,
+          contacts: found.contacts || [],
+          links_adicionais: found.links_adicionais || []
+        });
+        setActiveContactIndex(0);
+      } else {
+        setEditingLead(null);
+      }
+    }
+  }, [selectedLeadId, leads]);
 
   const handleCardClick = (leadId: string) => {
     setSelectedLeadId(leadId);
     setActiveTab('details');
   };
 
+  // Auto-select contact when opening project modal
+  useEffect(() => {
+    if (isProjectModalOpen && targetLeadId) {
+      const targetLead = leads.find(l => l.id === targetLeadId);
+      if (targetLead && targetLead.contacts && targetLead.contacts.length === 1) {
+        setProjectToCreate(prev => ({ ...prev, contato_responsavel_id: targetLead.contacts[0].id }));
+      }
+    }
+  }, [isProjectModalOpen, targetLeadId, leads]);
+
   // DRAG AND DROP HANDLERS
-  const handleDragStart = (e: React.DragEvent, leadId: string) => {
-    setDraggingLeadId(leadId);
-    e.dataTransfer.setData('leadId', leadId);
+  const handleDragStart = (e: React.DragEvent, projectId: string) => {
+    setDraggingProjectId(projectId);
+    e.dataTransfer.setData('projectId', projectId);
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault(); // Essential to allow dropping
+    e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = async (e: React.DragEvent, newStatus: LeadStatus) => {
     e.preventDefault();
-    const leadId = e.dataTransfer.getData('leadId');
+    const projectId = e.dataTransfer.getData('projectId');
 
-    const lead = leads.find(l => l.id === leadId);
-    if (!lead || lead.status === newStatus) return;
+    const project = projects.find(p => p.id === projectId);
+    if (!project || project.status === newStatus) return;
 
-    const logEntry = `[${new Date().toLocaleString()}] Moveu de "${lead.status}" para "${newStatus}"`;
+    const logEntry = `[${new Date().toLocaleString()}] Moveu de "${project.status}" para "${newStatus}"`;
 
-    const updatedLead: Lead = {
-      ...lead,
+    const updatedProject: Project = {
+      ...project,
       status: newStatus,
-      historico_logs: [...(lead.historico_logs || []), logEntry]
+      historico_logs: [...(project.historico_logs || []), logEntry]
     };
 
     try {
-      await saveLead(updatedLead);
+      await saveProject(updatedProject);
       await refreshData();
     } catch (error) {
-      alert("Erro ao atualizar status do lead");
+      alert("Erro ao atualizar status do projeto");
     }
-    setDraggingLeadId(null);
+    setDraggingProjectId(null);
   };
 
   const handleArchive = async (lead: Lead) => {
-    if (confirm('Deseja realmente arquivar este lead?')) {
-      const logEntry = `[${new Date().toLocaleString()}] Lead arquivado via Lista Detalhada.`;
+    if (confirm('Deseja arquivar este cliente, todas as suas oportunidades e orçamentos?')) {
+      try {
+        const logEntry = `[${new Date().toLocaleString()}] Cliente arquivado com todo seu histórico.`;
+
+        // 1. Archive Lead
+        const updatedLead: Lead = {
+          ...lead,
+          status: LeadStatus.ARCHIVED,
+          historico_logs: [...(lead.historico_logs || []), logEntry]
+        };
+        await saveLead(updatedLead);
+
+        // 2. Archive Projects
+        const leadProjects = projects.filter(p => p.lead_id === lead.id);
+        for (const project of leadProjects) {
+          await saveProject({ ...project, is_arquivado: true });
+        }
+
+        // 3. Archive Budgets
+        const leadBudgets = budgets.filter(b => b.lead_id === lead.id);
+        for (const budget of leadBudgets) {
+          await saveBudget({ ...budget, is_arquivado: true });
+        }
+
+        await refreshData();
+      } catch (error) {
+        console.error("Error archiving lead:", error);
+        alert("Erro ao arquivar cliente");
+      }
+    }
+  };
+
+  const handleRestoreLead = async (lead: Lead, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const logEntry = `[${new Date().toLocaleString()}] Cliente restaurado do arquivo.`;
+
+      // 1. Restore Lead
       const updatedLead: Lead = {
         ...lead,
-        status: LeadStatus.ARCHIVED,
+        status: LeadStatus.NEW,
         historico_logs: [...(lead.historico_logs || []), logEntry]
       };
       await saveLead(updatedLead);
+
+      // 2. Restore Projects
+      const leadProjects = projects.filter(p => p.lead_id === lead.id);
+      for (const project of leadProjects) {
+        await saveProject({ ...project, is_arquivado: false });
+      }
+
+      // 3. Restore Budgets
+      const leadBudgets = budgets.filter(b => b.lead_id === lead.id);
+      for (const budget of leadBudgets) {
+        await saveBudget({ ...budget, is_arquivado: false });
+      }
+
       await refreshData();
+      alert("Cliente e todo seu histórico restaurados com sucesso!");
+    } catch (error) {
+      console.error("Error restoring lead:", error);
+      alert("Erro ao restaurar lead");
     }
   };
 
@@ -209,7 +380,7 @@ const Leads: React.FC = () => {
   const handleAddContact = () => {
     if (!editingLead) return;
     const newContact: Contact = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       nome: 'Novo Contato',
       cargo: '',
       email: '',
@@ -265,6 +436,43 @@ const Leads: React.FC = () => {
     const newContacts = [...editingLead.contacts];
     newContacts[index] = { ...newContacts[index], [field]: value };
     setEditingLead({ ...editingLead, contacts: newContacts });
+  };
+
+  const addSocialLink = (isNewForm: boolean) => {
+    const newLink: SocialLink = { id: generateId(), label: 'Outro', url: '' };
+    if (isNewForm) {
+      setNewLead({
+        ...newLead,
+        links_adicionais: [...(newLead.links_adicionais || []), newLink]
+      });
+    } else if (editingLead) {
+      setEditingLead({
+        ...editingLead,
+        links_adicionais: [...(editingLead.links_adicionais || []), newLink]
+      });
+    }
+  };
+
+  const updateSocialLink = (index: number, field: keyof SocialLink, value: string, isNewForm: boolean) => {
+    if (isNewForm) {
+      const newLinks = [...(newLead.links_adicionais || [])];
+      newLinks[index] = { ...newLinks[index], [field]: value };
+      setNewLead({ ...newLead, links_adicionais: newLinks });
+    } else if (editingLead) {
+      const newLinks = [...(editingLead.links_adicionais || [])];
+      newLinks[index] = { ...newLinks[index], [field]: value };
+      setEditingLead({ ...editingLead, links_adicionais: newLinks });
+    }
+  };
+
+  const removeSocialLink = (index: number, isNewForm: boolean) => {
+    if (isNewForm) {
+      const newLinks = (newLead.links_adicionais || []).filter((_, i) => i !== index);
+      setNewLead({ ...newLead, links_adicionais: newLinks });
+    } else if (editingLead) {
+      const newLinks = (editingLead.links_adicionais || []).filter((_, i) => i !== index);
+      setEditingLead({ ...editingLead, links_adicionais: newLinks });
+    }
   };
 
   // --- FORM HANDLERS ---
@@ -375,7 +583,7 @@ const Leads: React.FC = () => {
     }
 
     const leadToSave: Lead = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       cnpj: newLead.cnpj || '',
       empresa_nome: newLead.empresa_nome,
       nome_fantasia: newLead.nome_fantasia || '',
@@ -384,7 +592,7 @@ const Leads: React.FC = () => {
       cidade: newLead.cidade || '',
       uf: newLead.uf || '',
       contacts: [{
-        id: crypto.randomUUID(),
+        id: generateId(),
         nome: initialContact.nome || 'Principal',
         cargo: initialContact.cargo || '',
         email: initialContact.email || '',
@@ -393,6 +601,7 @@ const Leads: React.FC = () => {
       social_site: newLead.social_site,
       social_instagram: newLead.social_instagram,
       social_linkedin: newLead.social_linkedin,
+      links_adicionais: newLead.links_adicionais || [],
       anotacoes: newLead.anotacoes,
       tipo_projeto: newLead.tipo_projeto,
       status: LeadStatus.NEW,
@@ -404,128 +613,533 @@ const Leads: React.FC = () => {
 
     try {
       await saveLead(leadToSave);
-      setNewLead({ status: LeadStatus.NEW, tipo_projeto: 'Outro' });
+      setNewLead({ status: LeadStatus.NEW, tipo_projeto: 'Outro', links_adicionais: [] });
       setInitialContact({});
       await refreshData();
       setSelectedLeadId(leadToSave.id);
       setActiveTab('details');
-    } catch (error) {
-      alert("Erro ao criar lead");
+    } catch (error: any) {
+      console.error("Error creating lead:", error);
+      alert(`Erro ao criar lead: ${error.message || 'Verifique o console'}`);
     }
+  };
+
+  const renderProjectModal = () => {
+    if (!isProjectModalOpen) return null;
+    const targetLead = leads.find(l => l.id === targetLeadId);
+
+    return (
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-red-600 p-6 text-white text-center">
+            <h3 className="text-xl font-bold flex items-center justify-center gap-2">
+              <Sparkles size={24} /> Nova Oportunidade
+            </h3>
+            <p className="text-red-100 text-sm mt-1">{targetLead?.empresa_nome}</p>
+          </div>
+
+          <form onSubmit={handleCreateProject} className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Título da Prospecção / Briefing</label>
+              <input
+                type="text"
+                required
+                placeholder="Ex: Campanha Verão 2024"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all mb-4"
+                value={projectToCreate.titulo || ''}
+                onChange={e => setProjectToCreate({ ...projectToCreate, titulo: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Responsável pelo Projeto</label>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                <select
+                  required
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all appearance-none"
+                  value={projectToCreate.contato_responsavel_id || ''}
+                  onChange={e => setProjectToCreate({ ...projectToCreate, contato_responsavel_id: e.target.value })}
+                >
+                  <option value="">Selecione quem responderá por este job...</option>
+                  {targetLead?.contacts?.map(contact => (
+                    <option key={contact.id} value={contact.id}>
+                      {contact.nome} {contact.cargo ? `(${contact.cargo})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setIsProjectModalOpen(false)}
+                className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-600/30 transition-all active:scale-95"
+              >
+                Criar Oportunidade
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
   };
 
   // --- RENDERERS ---
 
-  const renderKanban = () => (
-    <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)] relative" onClick={handleLeadContainerClick}>
-      {isLoading && (
-        <div className="absolute inset-0 bg-white/50 z-50 flex items-center justify-center">
-          <Loader2 className="animate-spin text-red-600" size={48} />
-        </div>
-      )}
-      {STATUS_ORDER.map((status) => {
-        const columnLeads = leads.filter(l => l.status === status);
-
-        return (
-          <div
-            key={status}
-            className="min-w-[320px] w-[320px] bg-slate-100 rounded-xl flex flex-col h-full border border-slate-200"
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, status)}
-          >
-            <div className={`p-4 rounded-t-xl font-bold text-slate-700 border-b border-slate-200 bg-slate-200 flex justify-between items-center shadow-sm z-10`}>
-              <span>{status}</span>
-              <span className="bg-white px-2 py-0.5 rounded-full text-xs text-slate-500 font-mono">{columnLeads.length}</span>
-            </div>
-            <div className="p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
-              {columnLeads.map(lead => {
-                const overdue = isOverdue(lead.data_retorno) && status !== LeadStatus.ARCHIVED && status !== LeadStatus.PRODUCTION;
-                const highTicket = (lead.valor_estimado || 0) > 10000;
-                const styles = getCardStyle(lead, overdue);
-
-                return (
-                  <div
-                    key={lead.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, lead.id)}
-                    data-action="view-lead"
-                    data-id={lead.id}
-                    className={`
-                        relative p-4 rounded-lg shadow-md transition-all cursor-grab active:cursor-grabbing group 
-                        border border-slate-200 border-l-[6px] 
-                        hover:shadow-xl hover:-translate-y-1
-                        ${styles.borderClass}
-                    `}
-                  >
-                    {/* Delete Icon Overlay */}
-                    <button
-                      data-action="delete-lead"
-                      data-id={lead.id}
-                      className="absolute top-2 left-2 p-1.5 bg-red-50 text-red-500 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 z-20"
-                      title="Excluir Lead permanentemente"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                    {/* Alert Header if Overdue */}
-                    {overdue && (
-                      <div className="absolute top-2 right-2 text-red-500 animate-pulse">
-                        <AlertTriangle size={18} fill="currentColor" className="text-red-200" />
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-start mb-3 pr-6">
-                      <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wide border ${styles.badgeClass}`}>
-                        {lead.tipo_projeto || 'Outro'}
-                      </span>
-                    </div>
-
-                    <h4 className="font-bold text-slate-800 text-sm leading-tight mb-1">
-                      {lead.empresa_nome}
-                    </h4>
-
-                    <div className="mt-4 flex items-center justify-between">
-                      {/* High Ticket Indicator */}
-                      {highTicket ? (
-                        <div className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100">
-                          💎 High Ticket
-                        </div>
-                      ) : <div></div>}
-
-                      {/* Obsolete value removed */}
-                    </div>
-
-                    {/* Footer Info */}
-                    <div className="mt-3 pt-3 border-t border-slate-200/50 flex justify-between items-center text-xs text-slate-500">
-                      <div className="flex items-center gap-2">
-                        <span>{lead.contacts?.[0]?.nome.split(' ')[0] || 'S/ Contato'}</span>
-                        <div className="flex gap-1 ml-1">
-                          {lead.social_instagram && <Instagram size={12} className="text-pink-600" />}
-                          {lead.social_linkedin && <Linkedin size={12} className="text-blue-600" />}
-                        </div>
-                      </div>
-                      {lead.data_retorno && (
-                        <span className={`flex items-center gap-1 ${overdue ? 'font-bold text-red-600' : ''}`}>
-                          <Calendar size={12} /> {new Date(lead.data_retorno).toLocaleDateString().slice(0, 5)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {columnLeads.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-400 opacity-50">
-                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 mb-2">
-                    <Layout size={24} />
-                  </div>
-                  <span className="text-xs font-medium">Vazio</span>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })}
+  const renderTabs = () => (
+    <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-fit mb-6">
+      <button
+        onClick={() => setActiveTab('pipeline')}
+        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'pipeline' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+      >
+        <Layout size={18} /> Pipeline de Prospecção
+      </button>
+      <button
+        onClick={() => setActiveTab('directory')}
+        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'directory' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+      >
+        <Briefcase size={18} /> Clientes/Contatos
+      </button>
+      <button
+        onClick={() => setActiveTab('archived')}
+        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'archived' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+      >
+        <Archive size={18} /> Arquivados
+      </button>
+      <button
+        onClick={() => setActiveTab('new')}
+        className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow-md hover:bg-red-700 transition-all ml-12"
+      >
+        <Plus size={18} /> Novo Cliente
+      </button>
     </div>
   );
+
+  const renderKanban = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              placeholder="Buscar por cliente ou título..."
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition-all"
+              value={pipelineSearchTerm}
+              onChange={e => setPipelineSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setPipelineViewMode('kanban')}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${pipelineViewMode === 'kanban' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <Layout size={14} /> Kanban
+            </button>
+            <button
+              onClick={() => setPipelineViewMode('list')}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${pipelineViewMode === 'list' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <List size={14} /> Lista
+            </button>
+          </div>
+        </div>
+
+        {pipelineViewMode === 'kanban' ? (
+          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+            {STATUS_ORDER.map(status => {
+              // Projects in this column
+              const columnProjects = projects.filter(p => !p.is_arquivado && p.status === status && (
+                p.titulo.toLowerCase().includes(pipelineSearchTerm.toLowerCase()) ||
+                leads.find(l => l.id === p.lead_id)?.empresa_nome.toLowerCase().includes(pipelineSearchTerm.toLowerCase())
+              ));
+
+              // Budgets without project_id for the "Orçamento" column
+              const unlinkedBudgets = status === LeadStatus.BUDGET ? budgets.filter(b => !b.is_arquivado && !b.project_id && (
+                b.titulo_projeto.toLowerCase().includes(pipelineSearchTerm.toLowerCase()) ||
+                leads.find(l => l.id === b.lead_id)?.empresa_nome.toLowerCase().includes(pipelineSearchTerm.toLowerCase())
+              )) : [];
+
+              return (
+                <div
+                  key={status}
+                  className="flex flex-col gap-4 min-w-[320px] w-[320px]"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDrop(e, status as LeadStatus)}
+                >
+                  <div className="flex items-center justify-between px-2 bg-slate-50/50 py-2 rounded-lg border border-slate-100">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${status === LeadStatus.NEW ? 'bg-blue-500' : status === LeadStatus.BRIEFING ? 'bg-orange-500' : status === LeadStatus.BUDGET ? 'bg-amber-500' : status === LeadStatus.PRODUCTION ? 'bg-green-500' : 'bg-slate-400'}`} />
+                      {status}
+                      <span className="ml-1 bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full text-[10px]">
+                        {columnProjects.length + unlinkedBudgets.length}
+                      </span>
+                    </h3>
+                  </div>
+
+                  <div className={`flex-1 flex flex-col gap-3 p-3 rounded-2xl border-2 border-dashed transition-colors ${draggingProjectId ? 'bg-slate-50 border-slate-200' : 'bg-transparent border-transparent'}`}>
+                    {columnProjects.map(project => {
+                      const lead = leads.find(l => l.id === project.lead_id) || ({} as Lead);
+                      const isOver = isOverdue(lead.data_retorno);
+                      const styles = getCardStyle(lead, isOver);
+
+                      return (
+                        <div
+                          key={project.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, project.id)}
+                          onDragEnd={() => setDraggingProjectId(null)}
+                          onClick={() => { setSelectedLeadId(lead.id); setActiveTab('details'); }}
+                          className={`group p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-red-200 transition-all cursor-pointer border-l-4 ${styles.borderClass} relative`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase">
+                              {lead.tipo_projeto || 'Outro'}
+                            </span>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={(e) => handleArchiveProject(project, e)}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                                title="Arquivar Oportunidade"
+                              >
+                                <Archive size={14} />
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteProject(project.id, e)}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="Excluir Oportunidade"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                          <h4 className="font-bold text-slate-800 text-sm leading-tight">{project.titulo}</h4>
+                          <p className="text-xs text-slate-500 mt-1">{lead.empresa_nome}</p>
+
+                          {project.contato_responsavel_id && lead.contacts?.find(c => c.id === project.contato_responsavel_id) && (
+                            <div className="flex items-center gap-1.5 mt-2 py-1 px-2 bg-slate-50 rounded-md border border-slate-100 w-fit">
+                              <User size={10} className="text-slate-400" />
+                              <span className="text-[10px] text-slate-600 font-medium">
+                                {lead.contacts.find(c => c.id === project.contato_responsavel_id)?.nome}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                            <span className="text-xs font-bold text-red-600">
+                              {formatCurrency(project.valor_estimado)}
+                            </span>
+                            <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                              <Calendar size={10} />
+                              {new Date(project.data_criacao).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {unlinkedBudgets.map(budget => {
+                      const lead = leads.find(l => l.id === budget.lead_id) || ({} as Lead);
+                      return (
+                        <div
+                          key={budget.id}
+                          onClick={() => { setSelectedLeadId(lead.id); setActiveTab('details'); }}
+                          className="p-4 bg-amber-50/30 border border-amber-200 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4 border-l-amber-500"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-bold uppercase">
+                              Orçamento Avulso
+                            </span>
+                            <Sparkles className="text-amber-400" size={14} />
+                          </div>
+                          <h4 className="font-bold text-slate-800 text-sm leading-tight">{budget.titulo_projeto}</h4>
+                          <p className="text-xs text-slate-500 mt-1">{lead.empresa_nome}</p>
+
+                          <div className="flex items-center justify-between mt-4 pt-3 border-t border-amber-100">
+                            <span className="text-xs font-bold text-amber-700">
+                              {formatCurrency(budget.valor_final_ajustado || budget.valor_final_venda)}
+                            </span>
+                            <div className="flex items-center gap-1 text-[10px] text-amber-400 font-medium">
+                              <Calendar size={10} />
+                              {new Date(budget.data_criacao).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {columnProjects.length === 0 && unlinkedBudgets.length === 0 && (
+                      <div className="flex-1 flex flex-col items-center justify-center text-slate-300 py-10">
+                        <Archive size={24} strokeWidth={1} />
+                        <span className="text-[10px] uppercase font-bold mt-2">Vazio</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          renderPipelineList()
+        )}
+      </div>
+    );
+  };
+
+  const renderPipelineList = () => {
+    const filteredProjects = projects.filter(p => !p.is_arquivado && (
+      p.titulo.toLowerCase().includes(pipelineSearchTerm.toLowerCase()) ||
+      leads.find(l => l.id === p.lead_id)?.empresa_nome.toLowerCase().includes(pipelineSearchTerm.toLowerCase())
+    ));
+
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Oportunidade</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Cliente</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Data</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProjects.map(project => {
+              const lead = leads.find(l => l.id === project.lead_id);
+              return (
+                <tr key={project.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-slate-800">{project.titulo}</div>
+                    {project.contato_responsavel_id && lead?.contacts?.find(c => c.id === project.contato_responsavel_id) && (
+                      <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                        <User size={10} />
+                        {lead.contacts.find(c => c.id === project.contato_responsavel_id)?.nome}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">{lead?.empresa_nome || 'N/A'}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${project.status === 'Novo' ? 'bg-blue-100 text-blue-700' :
+                      project.status === 'Pendente' ? 'bg-orange-100 text-orange-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                      {project.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-slate-500 text-xs">
+                    {new Date(project.data_criacao).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-right font-bold text-red-600">
+                    {formatCurrency(project.valor_estimado)}
+                  </td>
+                </tr>
+              );
+            })}
+            {filteredProjects.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-20 text-center text-slate-400">
+                  <Archive className="mx-auto mb-2 opacity-20" size={40} />
+                  Nenhuma oportunidade encontrada
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+  const renderDirectory = () => {
+    const filteredLeads = leads.filter(l =>
+      l.status !== LeadStatus.ARCHIVED && (
+        (l.empresa_nome || '').toLowerCase().includes(directorySearchTerm.toLowerCase()) ||
+        (l.nome_fantasia || '').toLowerCase().includes(directorySearchTerm.toLowerCase())
+      )
+    );
+
+    return (
+      <div className="space-y-6" onClick={handleLeadContainerClick}>
+        <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <div className="relative flex-1 max-w-md">
+            <input
+              type="text"
+              placeholder="Buscar cliente ou contato..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-red-500 transition-all text-sm"
+              value={directorySearchTerm}
+              onChange={(e) => setDirectorySearchTerm(e.target.value)}
+            />
+            <Building2 className="absolute left-3 top-2.5 text-slate-400" size={18} />
+          </div>
+
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setDirectoryViewMode('grid')}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${directoryViewMode === 'grid' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <Layout size={14} /> Grid
+            </button>
+            <button
+              onClick={() => setDirectoryViewMode('list')}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${directoryViewMode === 'list' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <List size={14} /> Lista
+            </button>
+          </div>
+        </div>
+
+        {directoryViewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredLeads.map(lead => (
+              <div
+                key={lead.id}
+                data-action="view-lead"
+                data-id={lead.id}
+                className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow group cursor-pointer"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="bg-red-50 p-2 rounded-lg">
+                    <Building2 className="text-red-600" size={24} />
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTargetLeadId(lead.id);
+                      setIsProjectModalOpen(true);
+                    }}
+                    className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg transition-colors border border-red-100"
+                  >
+                    + Nova Oportunidade
+                  </button>
+                </div>
+
+                <h3 className="font-bold text-slate-900 text-lg leading-tight mb-1">{lead.empresa_nome}</h3>
+                <p className="text-sm text-slate-500 mb-4">{lead.nome_fantasia}</p>
+
+                <div className="space-y-2 mb-6">
+                  {lead.contacts?.[0] && (
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <User size={14} />
+                      <span>{lead.contacts[0].nome}</span>
+                    </div>
+                  )}
+                  {lead.contacts?.[0]?.telefone && (
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <Phone size={14} />
+                      <span>{lead.contacts[0].telefone}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 border-t border-slate-100 pt-4">
+                  <button
+                    className="flex-1 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 py-2 rounded-lg transition-colors pointer-events-none"
+                  >
+                    Ver Ficha Técnica
+                  </button>
+                  {lead.social_site && (
+                    <a
+                      href={lead.social_site}
+                      target="_blank"
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-2 bg-slate-50 text-slate-400 hover:text-red-600 rounded-lg"
+                    >
+                      <Globe size={16} />
+                    </a>
+                  )}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleArchive(lead); }}
+                    className="p-2 bg-slate-50 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
+                    title="Arquivar Cliente"
+                  >
+                    <Archive size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          renderDirectoryList(filteredLeads)
+        )}
+      </div>
+    );
+  };
+
+  const renderDirectoryList = (filteredLeads: Lead[]) => {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Empresa</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Contato Principal</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Localização</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredLeads.map(lead => (
+              <tr
+                key={lead.id}
+                data-action="view-lead"
+                data-id={lead.id}
+                className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <td className="px-6 py-4">
+                  <div className="font-bold text-slate-800">{lead.empresa_nome}</div>
+                  <div className="text-[10px] text-slate-400">{lead.cnpj}</div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-slate-600">{lead.contacts?.[0]?.nome || '-'}</div>
+                  <div className="text-xs text-slate-400">{lead.contacts?.[0]?.telefone || '-'}</div>
+                </td>
+                <td className="px-6 py-4 text-slate-500 text-xs text-balance">
+                  {lead.cidade ? `${lead.cidade} - ${lead.uf}` : '-'}
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors pointer-events-none"
+                    >
+                      Ficha Técnica
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setTargetLeadId(lead.id); setIsProjectModalOpen(true); }}
+                      className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors"
+                    >
+                      + Nova Op.
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleArchive(lead); }}
+                      className="p-1.5 bg-slate-100 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
+                      title="Arquivar"
+                    >
+                      <Archive size={14} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filteredLeads.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-6 py-20 text-center text-slate-400 text-sm">
+                  Nenhum cliente encontrado.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   const renderDetails = () => {
     const linkedBudgets = editingLead ? budgets.filter(b => b.lead_id === editingLead.id) : [];
@@ -755,6 +1369,39 @@ const Leads: React.FC = () => {
                             onChange={e => setEditingLead({ ...editingLead, social_site: e.target.value })}
                           />
                         </div>
+
+                        {/* Dynamic Additional Links */}
+                        {editingLead.links_adicionais?.map((link, idx) => (
+                          <div key={link.id} className="flex items-center gap-2 group">
+                            <LinkIcon size={16} className="text-slate-400" />
+                            <input
+                              className="w-24 text-xs font-bold bg-slate-50 border-none rounded px-1 py-0.5 outline-none focus:bg-white"
+                              value={link.label}
+                              onChange={e => updateSocialLink(idx, 'label', e.target.value, false)}
+                            />
+                            <input
+                              className="flex-1 bg-transparent border-b border-slate-200 focus:border-red-500 outline-none py-1"
+                              placeholder="https://..."
+                              value={link.url}
+                              onChange={e => updateSocialLink(idx, 'url', e.target.value, false)}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeSocialLink(idx, false)}
+                              className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={() => addSocialLink(false)}
+                          className="text-[10px] font-bold text-red-600 hover:text-red-700 mt-2 flex items-center gap-1"
+                        >
+                          <Plus size={12} /> Adicionar outro link (Portfólio, Drive, etc)
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -821,11 +1468,18 @@ const Leads: React.FC = () => {
                   <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Layout size={18} /> Orçamentos Vinculados</h3>
                   <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                     {linkedBudgets.map(b => (
-                      <div key={b.id} className="p-3 border border-slate-200 rounded-lg hover:border-amber-400 transition-colors bg-slate-50">
-                        <p className="font-bold text-slate-800 text-sm">{b.titulo_projeto}</p>
+                      <div
+                        key={b.id}
+                        onClick={() => navigate(`/budgets?edit=${b.id}`)}
+                        className="p-3 border border-slate-200 rounded-lg hover:border-red-400 hover:bg-white transition-all cursor-pointer bg-slate-50 group"
+                      >
+                        <div className="flex justify-between items-start">
+                          <p className="font-bold text-slate-800 text-sm group-hover:text-red-600 transition-colors">{b.titulo_projeto}</p>
+                          <ExternalLink size={14} className="text-slate-300 group-hover:text-red-400" />
+                        </div>
                         <div className="flex justify-between items-center mt-2">
                           <span className="text-xs text-slate-500">{new Date(b.data_criacao).toLocaleDateString()}</span>
-                          <span className="text-sm font-bold text-amber-600">{formatCurrency(b.valor_final_ajustado || b.valor_final_venda)}</span>
+                          <span className="text-sm font-bold text-red-600">{formatCurrency(b.valor_final_ajustado || b.valor_final_venda)}</span>
                         </div>
                       </div>
                     ))}
@@ -844,81 +1498,122 @@ const Leads: React.FC = () => {
 
   const renderArchived = () => {
     const archivedLeads = leads.filter(l => l.status === LeadStatus.ARCHIVED);
+    const archivedProjects = projects.filter(p => p.is_arquivado === true);
 
     return (
-      <div className="space-y-6" onClick={handleLeadContainerClick}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <Archive size={20} className="text-slate-500" /> Leads Arquivados
-          </h2>
-          <span className="text-sm text-slate-500 font-medium bg-slate-100 px-3 py-1 rounded-full">{archivedLeads.length} leads</span>
-        </div>
-
-        {archivedLeads.length === 0 ? (
-          <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-            <Archive size={48} className="mx-auto text-slate-300 mb-4" />
-            <p className="text-slate-500">Nenhum lead arquivado no momento.</p>
+      <div className="space-y-10" onClick={handleLeadContainerClick}>
+        {/* LEADS SECTION */}
+        <section>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <User size={20} className="text-slate-500" /> Clientes Arquivados
+            </h2>
+            <span className="text-sm text-slate-500 font-medium bg-slate-100 px-3 py-1 rounded-full">{archivedLeads.length} itens</span>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {archivedLeads.map(lead => {
-              const styles = getCardStyle(lead, false);
-              return (
-                <div
-                  key={lead.id}
-                  data-action="view-lead"
-                  data-id={lead.id}
-                  className={`
-                        relative p-5 rounded-xl shadow-md transition-all cursor-pointer group 
-                        border border-slate-200 border-l-8 
-                        hover:shadow-xl hover:-translate-y-1 bg-white
-                        ${styles.borderClass}
-                    `}
-                >
-                  <div className="flex justify-between items-start mb-4 pr-10">
-                    <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wide border ${styles.badgeClass}`}>
-                      {lead.tipo_projeto || 'Outro'}
-                    </span>
-                    <button
-                      data-action="delete-lead"
-                      data-id={lead.id}
-                      className="p-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
 
-                  <h4 className="font-bold text-slate-800 text-lg leading-tight mb-2">
-                    {lead.empresa_nome}
-                  </h4>
+          {archivedLeads.length === 0 ? (
+            <div className="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+              <p className="text-slate-400 text-sm">Nenhum cliente arquivado.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {archivedLeads.map(lead => {
+                const styles = getCardStyle(lead, false);
+                return (
+                  <div
+                    key={lead.id}
+                    data-action="view-lead"
+                    data-id={lead.id}
+                    className={`relative p-5 rounded-xl shadow-md transition-all cursor-pointer group border border-slate-200 border-l-8 hover:shadow-xl hover:-translate-y-1 bg-white ${styles.borderClass}`}
+                  >
+                    <div className="flex justify-between items-start mb-4 pr-10">
+                      <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wide border ${styles.badgeClass}`}>
+                        {lead.tipo_projeto || 'Outro'}
+                      </span>
+                      <button
+                        data-action="delete-lead"
+                        data-id={lead.id}
+                        className="p-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id); }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
 
-                  <div className="flex items-center gap-2 text-sm text-slate-600 mb-4">
-                    <Mail size={14} /> {lead.contacts?.[0]?.email || 'N/A'}
-                  </div>
+                    <h4 className="font-bold text-slate-800 text-lg leading-tight mb-2">{lead.empresa_nome}</h4>
+                    <div className="flex items-center gap-2 text-sm text-slate-600 mb-4">
+                      <Mail size={14} /> {lead.contacts?.[0]?.email || 'N/A'}
+                    </div>
 
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-xs text-slate-400">Cadastrado em {new Date(lead.data_cadastro).toLocaleDateString()}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const updatedLead: Lead = {
-                          ...lead,
-                          status: LeadStatus.NEW,
-                          historico_logs: [...(lead.historico_logs || []), `[${new Date().toLocaleString()}] Restaurado do arquivo.`]
-                        };
-                        saveLead(updatedLead);
-                        refreshData();
-                      }}
-                      className="text-xs font-bold text-amber-600 hover:text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 transition-colors"
-                    >
-                      Trazer de Volta
-                    </button>
+                    <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                      <span className="text-xs text-slate-400">Desde {new Date(lead.data_cadastro).toLocaleDateString()}</span>
+                      <button
+                        onClick={(e) => handleRestoreLead(lead, e)}
+                        className="text-xs font-bold text-red-600 hover:text-white hover:bg-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 transition-all flex items-center gap-1"
+                      >
+                        <RotateCcw size={12} /> Trazer de Volta
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* PROJECTS SECTION */}
+        <section>
+          <div className="flex justify-between items-center mb-6 pt-6 border-t border-slate-200">
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <Briefcase size={20} className="text-slate-500" /> Oportunidades Arquivadas
+            </h2>
+            <span className="text-sm text-slate-500 font-medium bg-slate-100 px-3 py-1 rounded-full">{archivedProjects.length} itens</span>
           </div>
-        )}
+
+          {archivedProjects.length === 0 ? (
+            <div className="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+              <p className="text-slate-400 text-sm">Nenhum projeto arquivado.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {archivedProjects.map(project => {
+                const lead = leads.find(l => l.id === project.lead_id);
+                return (
+                  <div
+                    key={project.id}
+                    className="p-5 bg-white border border-slate-200 rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer group"
+                    onClick={() => { if (lead) { setSelectedLeadId(lead.id); setActiveTab('details'); } }}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase">
+                        {lead?.tipo_projeto || 'Outro'}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteProject(project.id, e); }}
+                        className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+
+                    <h4 className="font-bold text-slate-800 text-lg leading-tight mb-1">{project.titulo}</h4>
+                    <p className="text-sm text-slate-500 mb-4">{lead?.empresa_nome || 'Cliente não encontrado'}</p>
+
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                      <span className="text-sm font-bold text-red-600">{formatCurrency(project.valor_estimado)}</span>
+                      <button
+                        onClick={(e) => handleRestoreProject(project, e)}
+                        className="text-xs font-bold text-amber-600 hover:text-white hover:bg-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 transition-all flex items-center gap-1"
+                      >
+                        <RotateCcw size={12} /> Restaurar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
     );
   };
@@ -1115,6 +1810,42 @@ const Leads: React.FC = () => {
                 placeholder="www.site.com.br"
               />
             </div>
+
+            <div className="md:col-span-2 space-y-3">
+              <label className="block text-sm font-bold text-slate-700 mb-1">Links Adicionais</label>
+              {newLead.links_adicionais?.map((link, idx) => (
+                <div key={link.id} className="flex gap-2 items-center bg-white p-2 rounded-lg border border-slate-200">
+                  <input
+                    type="text"
+                    className="w-32 bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs font-bold outline-none focus:bg-white"
+                    placeholder="Ex: Portfólio"
+                    value={link.label}
+                    onChange={e => updateSocialLink(idx, 'label', e.target.value, true)}
+                  />
+                  <input
+                    type="text"
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:bg-white"
+                    placeholder="https://..."
+                    value={link.url}
+                    onChange={e => updateSocialLink(idx, 'url', e.target.value, true)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSocialLink(idx, true)}
+                    className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addSocialLink(true)}
+                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1"
+              >
+                <Plus size={14} /> Adicionar Link Personalizado
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1138,43 +1869,24 @@ const Leads: React.FC = () => {
   );
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-slate-800 mb-4">Gestão de Leads</h1>
-        <div className="flex gap-1 bg-white p-1 rounded-lg border border-slate-200 inline-flex shadow-sm">
-          <button
-            onClick={() => setActiveTab('kanban')}
-            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'kanban' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
-          >
-            <Layout size={18} /> Kanban
-          </button>
-          <button
-            onClick={() => setActiveTab('details')}
-            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'details' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
-          >
-            <List size={18} /> Lista Detalhada
-          </button>
-          <button
-            onClick={() => setActiveTab('archived')}
-            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'archived' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
-          >
-            <Archive size={18} /> Leads Arquivados
-          </button>
-          <button
-            onClick={() => setActiveTab('new')}
-            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'new' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
-          >
-            <Plus size={18} /> Novo Cadastro
-          </button>
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-[1600px] mx-auto p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-2">CRM de Projetos</h1>
+          <p className="text-slate-500 font-medium">Gerencie seus clientes e acompanhe o progresso de cada entrega.</p>
+        </div>
+
+        {renderTabs()}
+
+        <div className="mt-8">
+          {activeTab === 'pipeline' && renderKanban()}
+          {activeTab === 'directory' && renderDirectory()}
+          {activeTab === 'details' && renderDetails()}
+          {activeTab === 'archived' && renderArchived()}
+          {activeTab === 'new' && renderNewForm()}
         </div>
       </div>
-
-      <div className="mt-4">
-        {activeTab === 'kanban' && renderKanban()}
-        {activeTab === 'details' && renderDetails()}
-        {activeTab === 'archived' && renderArchived()}
-        {activeTab === 'new' && renderNewForm()}
-      </div>
+      {renderProjectModal()}
     </div>
   );
 };

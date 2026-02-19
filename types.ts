@@ -4,10 +4,18 @@ export enum LeadStatus {
   BUDGET = 'Orçamento',
   NEGOTIATION = 'Negociação',
   PRODUCTION = 'Produção',
-  ARCHIVED = 'Arquivo'
+  CLOSED = 'Fechado',
+  ARCHIVED = 'Arquivo',
+  LOST = 'Perdido'
 }
 
-export type ProjectType = 'Publicidade' | 'Institucional' | 'Evento' | 'Outro';
+export type ProjectType = 'Publicidade' | 'Institucional' | 'Evento' | 'Outro' | 'Transmissão ao Vivo';
+
+export interface SocialLink {
+  id: string;
+  label: string;
+  url: string;
+}
 
 export interface Contact {
   id: string;
@@ -17,6 +25,7 @@ export interface Contact {
   telefone: string;
   social_instagram?: string;
   social_linkedin?: string;
+  lead_id?: string;
 }
 
 export interface Lead {
@@ -24,29 +33,38 @@ export interface Lead {
   cnpj: string;
   empresa_nome: string;
   nome_fantasia: string;
-
-  // Address fields
   logradouro?: string;
   bairro?: string;
   cidade?: string;
   uf?: string;
-
-  // Refactored to 1-to-Many
-  contacts: Contact[];
-
-  // Social & Info
   social_site?: string;
   social_instagram?: string;
   social_linkedin?: string;
+  links_adicionais?: SocialLink[];
   anotacoes?: string;
   tipo_projeto?: ProjectType;
-
   status: LeadStatus;
   valor_estimado?: number;
-  historico_logs: string[]; // Array of log strings
+  historico_logs: string[];
   data_cadastro: string;
   data_retorno?: string;
   motivo_perda?: string;
+  contacts: Contact[];
+}
+
+export interface Project {
+  id: string;
+  lead_id: string;
+  titulo: string;
+  status: LeadStatus;
+  valor_estimado: number;
+  data_criacao: string;
+  data_inicio?: string;
+  data_fim?: string;
+  descricao?: string;
+  historico_logs: string[];
+  is_arquivado?: boolean;
+  contato_responsavel_id?: string;
 }
 
 export interface CatalogItem {
@@ -59,7 +77,7 @@ export interface CatalogItem {
 
 export interface BudgetItem {
   id: string;
-  categoria: string; // 'Produção', 'Equipamentos', 'Logística', 'Outros'
+  categoria: string;
   descricao: string;
   qtd: number;
   custo_unitario_real: number;
@@ -69,36 +87,27 @@ export interface BudgetItem {
 export interface Budget {
   id: string;
   lead_id: string;
+  project_id?: string;
   titulo_projeto: string;
   data_criacao: string;
   validade_dias: number;
   validade_proposta?: string;
-
-  // Financials
-  percentual_lucro: number; // default 20
-  percentual_bv: number;    // default 10
-  percentual_imposto: number; // default 10
-
-  // Computed (stored for history, but usually recalculated)
+  percentual_lucro: number;
+  percentual_bv: number;
+  percentual_imposto: number;
   custo_total_projeto: number;
   valor_final_venda: number;
-
   texto_apresentacao_ia?: string;
   objetivo_estrategico?: string;
   especificacoes_entrega?: string;
   previsao_entrega?: string;
-
-  // New Fields
   modo_cliente: boolean;
   etapas_processo: string[];
   forma_pagamento: string;
   avisos: string;
-
-  // Finetuning
   valor_final_ajustado?: number;
   is_fechado?: boolean;
   is_arquivado?: boolean;
-
   items: BudgetItem[];
 }
 

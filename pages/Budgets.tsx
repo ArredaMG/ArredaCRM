@@ -1,13 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getBudgets, saveBudget, deleteBudget, getLeads, getCatalog } from '../services/dataService';
+import { useSearchParams } from 'react-router-dom';
+import { getBudgets, saveBudget, deleteBudget, getLeads, getCatalog, getProjects } from '../services/dataService';
 import { generateProposalText } from '../services/geminiService';
-import { Budget, BudgetItem, Lead, CatalogItem } from '../types';
+import { Budget, BudgetItem, Lead, CatalogItem, Project } from '../types';
 import { DEFAULT_PROFIT, DEFAULT_BV, DEFAULT_TAX, formatCurrency } from '../constants';
 import { Plus, Trash2, Edit, Calculator, Sparkles, FileDown, ArrowLeft, Save, Package, Truck, Users, Box, Search, Zap, LayoutGrid, List, Eye, EyeOff, Archive, Copy, RotateCcw } from 'lucide-react';
 
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 const Budgets: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [view, setView] = useState<'list' | 'edit'>('list');
   const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid');
@@ -46,6 +58,19 @@ const Budgets: React.FC = () => {
     refreshData();
   }, []);
 
+  // Handle Edit Deep Link
+  useEffect(() => {
+    if (editId && budgets.length > 0) {
+      const budgetToEdit = budgets.find(b => b.id === editId);
+      if (budgetToEdit) {
+        setCurrentBudget({ ...budgetToEdit });
+        setView('edit');
+        // Clear param after opening to avoid re-opening on logic refreshes if desired
+        // setSearchParams({}); 
+      }
+    }
+  }, [editId, budgets]);
+
   // Handle click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,14 +85,16 @@ const Budgets: React.FC = () => {
   const refreshData = async () => {
     setIsLoading(true);
     try {
-      const [budgetsData, leadsData, catalogData] = await Promise.all([
+      const [budgetsData, leadsData, catalogData, projectsData] = await Promise.all([
         getBudgets(),
         getLeads(),
-        getCatalog()
+        getCatalog(),
+        getProjects()
       ]);
       setBudgets(budgetsData || []);
       setLeads(leadsData || []);
       setCatalog(catalogData || []);
+      setProjects(projectsData || []);
     } catch (error) {
       console.error("Error refreshing data:", error);
     } finally {
@@ -81,7 +108,7 @@ const Budgets: React.FC = () => {
     nextWeek.setDate(today.getDate() + 7);
 
     const newBudget: Budget = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       lead_id: leads[0]?.id || '',
       titulo_projeto: 'Novo Projeto',
       data_criacao: today.toISOString().split('T')[0],
@@ -149,7 +176,7 @@ const Budgets: React.FC = () => {
 
       const duplicated: Budget = {
         ...budget,
-        id: crypto.randomUUID(),
+        id: generateId(),
         data_criacao: today.toISOString().split('T')[0],
         validade_proposta: nextWeek.toISOString().split('T')[0],
         is_fechado: false,
@@ -272,7 +299,7 @@ const Budgets: React.FC = () => {
     if (!currentBudget || !tempItem.descricao || !tempItem.custo) return;
 
     const item: BudgetItem = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       categoria: category,
       descricao: tempItem.descricao,
       qtd: Number(tempItem.qtd) || 1,
@@ -587,6 +614,27 @@ const Budgets: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="col-span-2 md:col-span-1">
+                <label className="block text-sm font-bold text-slate-800 mb-2">Oportunidade / Projeto Vinculado</label>
+                <select
+                  className="w-full text-lg bg-white border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-red-500 outline-none font-medium text-slate-900"
+                  value={currentBudget.project_id || ''}
+                  onChange={e => setCurrentBudget({ ...currentBudget, project_id: e.target.value })}
+                >
+                  <option value="">-- Sem vínculo com projeto específico --</option>
+                  {projects
+                    .filter(p => p.lead_id === currentBudget.lead_id)
+                    .map(p => (
+                      <option key={p.id} value={p.id}>{p.titulo}</option>
+                    ))
+                  }
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1 italic">
+                  * Vincular a uma oportunidade ajuda na organização do Pipeline.
+                </p>
+              </div>
+
               <div className="col-span-2 md:col-span-1">
                 <label className="block text-sm font-bold text-slate-800 mb-2">Objetivo Estratégico</label>
                 <textarea
