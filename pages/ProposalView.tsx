@@ -43,7 +43,7 @@ const ProposalView: React.FC = () => {
     // Use Validade Proposta if available, otherwise fallback
     const validadeDate = budget.validade_proposta
         ? new Date(budget.validade_proposta + 'T12:00:00') // Add time to avoid timezone shift
-        : new Date(new Date(budget.data_criacao).getTime() + (budget.validade_dias * 24 * 60 * 60 * 1000));
+        : new Date(new Date(budget.data_criacao).getTime() + ((budget.validade_dias || 7) * 24 * 60 * 60 * 1000));
 
     const triggerPrint = () => {
         const originalTitle = document.title;

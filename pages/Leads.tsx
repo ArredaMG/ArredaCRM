@@ -652,6 +652,25 @@ const Leads: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Estimado (R$)</label>
+              <input
+                type="text"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all mb-4 font-mono font-bold text-slate-700"
+                placeholder="R$ 0,00"
+                value={
+                  (projectToCreate.valor_estimado !== undefined)
+                    ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(projectToCreate.valor_estimado)
+                    : ''
+                }
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/\D/g, '');
+                  const floatValue = Number(rawValue) / 100;
+                  setProjectToCreate({ ...projectToCreate, valor_estimado: floatValue });
+                }}
+              />
+            </div>
+
+            <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Responsável pelo Projeto</label>
               <div className="relative">
                 <User className="absolute left-3 top-2.5 text-slate-400" size={16} />
@@ -1727,6 +1746,23 @@ const Leads: React.FC = () => {
                 <option value="Evento">Evento</option>
                 <option value="Outro">Outro</option>
               </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-800 mb-2">Valor Estimado (R$)</label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-3.5 text-slate-400" size={18} />
+              <input
+                type="text"
+                className="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-3 pl-10 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none shadow-sm"
+                placeholder="0,00"
+                value={newLead.valor_estimado ? newLead.valor_estimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : ''}
+                onChange={e => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  const numberValue = Number(value) / 100;
+                  setNewLead({ ...newLead, valor_estimado: numberValue });
+                }}
+              />
             </div>
           </div>
         </div>

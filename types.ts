@@ -26,13 +26,33 @@ export interface Contact {
   social_instagram?: string;
   social_linkedin?: string;
   lead_id?: string;
+  client_id?: string;
+}
+
+export interface Client {
+  id: string;
+  empresa_nome: string;
+  nome_fantasia?: string;
+  cnpj?: string;
+  logradouro?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  social_site?: string;
+  social_instagram?: string;
+  social_linkedin?: string;
+  links_adicionais?: SocialLink[];
+  anotacoes?: string;
+  data_cadastro: string;
 }
 
 export interface Lead {
   id: string;
-  cnpj: string;
-  empresa_nome: string;
+  client_id?: string; // Link to Client Directory
+  client?: Client; // Hydrated client data
+  empresa_nome: string; // Keep for fallback/cache
   nome_fantasia: string;
+  cnpj: string;
   logradouro?: string;
   bairro?: string;
   cidade?: string;
@@ -55,6 +75,7 @@ export interface Lead {
 export interface Project {
   id: string;
   lead_id: string;
+  client_id?: string;
   titulo: string;
   status: LeadStatus;
   valor_estimado: number;

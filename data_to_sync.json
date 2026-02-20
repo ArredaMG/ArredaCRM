@@ -1,0 +1,834 @@
+{
+    "leads": [
+        {
+            "id": "54b3b3bd-382c-4dec-9f98-4031b53d95e4",
+            "cnpj": "",
+            "empresa_nome": "Jaynne Menezes",
+            "nome_fantasia": "Congresso de Gastroenterologia",
+            "contacts": [
+                {
+                    "id": "e16a5292-cbb2-40a2-8385-8dc0004c067e",
+                    "nome": "Principal",
+                    "cargo": "",
+                    "email": "",
+                    "telefone": "",
+                    "social_instagram": "",
+                    "social_linkedin": ""
+                }
+            ],
+            "tipo_projeto": "Outro",
+            "status": "Orçamento",
+            "valor_estimado": 0,
+            "data_cadastro": "2026-02-03",
+            "data_retorno": "2026-02-03",
+            "historico_logs": [
+                "[03/02/2026, 14:58:29] Lead criado no sistema.",
+                "[03/02/2026, 16:19:44] Moveu de \"Novo\" para \"Orçamento\"",
+                "[11/02/2026, 10:32:00] Moveu de \"Orçamento\" para \"Novo\"",
+                "[11/02/2026, 10:32:03] Moveu de \"Novo\" para \"Orçamento\"",
+                "[11/02/2026, 10:32:04] Moveu de \"Orçamento\" para \"Negociação\"",
+                "[11/02/2026, 10:32:05] Moveu de \"Negociação\" para \"Produção\"",
+                "[11/02/2026, 10:32:05] Moveu de \"Produção\" para \"Orçamento\""
+            ],
+            "social_instagram": "",
+            "social_linkedin": ""
+        },
+        {
+            "id": "be13fd01-faf6-41e4-90d2-a6a1df401006",
+            "cnpj": "18.545.716/0001-30",
+            "empresa_nome": "SURFE DIGITAL LTDA",
+            "nome_fantasia": "SURFE DIGITAL LTDA",
+            "contacts": [
+                {
+                    "id": "d7ed1390-ab74-48b2-83d2-5f0005057d44",
+                    "nome": "Marcelo Gonzaga",
+                    "cargo": "Co-founder e CRO",
+                    "email": "",
+                    "telefone": "(31) 99209-6967",
+                    "social_instagram": "",
+                    "social_linkedin": ""
+                }
+            ],
+            "social_site": "https://www.surfedigital.io",
+            "tipo_projeto": "Evento",
+            "status": "Orçamento",
+            "valor_estimado": 0,
+            "data_cadastro": "2026-02-13",
+            "data_retorno": "2026-02-13",
+            "historico_logs": [
+                "[13/02/2026, 11:08:51] Lead criado no sistema.",
+                "[13/02/2026, 16:24:25] Moveu de \"Novo\" para \"Orçamento\""
+            ],
+            "social_linkedin": "https://www.linkedin.com/company/surfe-digital",
+            "social_instagram": ""
+        },
+        {
+            "id": "48fde22c-d9cc-48df-afdd-203970170da3",
+            "cnpj": "16.652.119/0001-89",
+            "empresa_nome": "MOTIVA SOLUCOES EM EVENTOS LTDA.",
+            "nome_fantasia": "MOTIVA MKT",
+            "logradouro": "DOS BANDOLINS, 175",
+            "bairro": "CONJUNTO CALIFORNIA I",
+            "cidade": "BELO HORIZONTE",
+            "uf": "MG",
+            "contacts": [
+                {
+                    "id": "1b95be3f-fe90-4833-8708-3a74a4d77f14",
+                    "nome": "Ana Michalick",
+                    "cargo": "",
+                    "email": "",
+                    "telefone": "31 9482-2127",
+                    "social_instagram": "",
+                    "social_linkedin": ""
+                }
+            ],
+            "social_site": "https://www.motivamkt.com.br/",
+            "tipo_projeto": "Outro",
+            "status": "Novo",
+            "valor_estimado": 0,
+            "data_cadastro": "2026-02-19",
+            "historico_logs": [
+                "[19/02/2026, 12:39:46] Lead criado no sistema.",
+                "[19/02/2026, 13:11:50] Moveu de \"Novo\" para \"Briefing\"",
+                "[19/02/2026, 13:11:52] Moveu de \"Briefing\" para \"Novo\""
+            ],
+            "social_instagram": "",
+            "social_linkedin": ""
+        },
+        {
+            "id": "a791b7fa-5b88-4907-97fa-def61b3e84cb",
+            "cnpj": "13602645000146",
+            "empresa_nome": "SC GESTAO EMPRESARIAL LTDA",
+            "nome_fantasia": "SEVEN GESTAO EMPRESARIAL",
+            "logradouro": "JORNALISTA DJALMA ANDRADE, 46",
+            "bairro": "BELVEDERE",
+            "cidade": "BELO HORIZONTE",
+            "uf": "MG",
+            "contacts": [
+                {
+                    "id": "8acd6979-0181-47d4-8af0-d6032ab781b1",
+                    "nome": "Gabi Bacelar",
+                    "cargo": "",
+                    "email": "",
+                    "telefone": "31 9251-2622",
+                    "social_instagram": "",
+                    "social_linkedin": ""
+                }
+            ],
+            "tipo_projeto": "Outro",
+            "status": "Novo",
+            "valor_estimado": 0,
+            "data_cadastro": "2026-02-19",
+            "historico_logs": [
+                "[19/02/2026, 12:42:17] Lead criado no sistema."
+            ],
+            "social_instagram": "",
+            "social_linkedin": ""
+        }
+    ],
+    "budgets": [
+        {
+            "modo_cliente": true,
+            "etapas_processo": [
+                "1. Visita Técnica",
+                "2. Contrato",
+                "3. Briefing",
+                "4. Produção",
+                "5. Entrega"
+            ],
+            "forma_pagamento": "Sinal de 30% via PIX ou transferência bancária para início da pré-produção.\\n\\nQuitação de 70% em até 30 dias após a data do evento, mediante emissão de Nota Fiscal. Nota: A reserva da data e o início do cronograma dependem da confirmação do pagamento de entrada\\n\\nDados Bancários:\\nNome: ARREDA CONTEUDO AUDIOVISUAL LTDA\\nBanco: 336 - Banco C6 S.A.\\nAgência: 0001\\nConta Corrente: 39079097-4 \\nChave Pix: 46479013000196\\n",
+            "avisos": "Os valores descritos acima estão sujeitos a alteração após a realização da visita técnica obrigatória. Esta etapa é fundamental para confirmarmos as condições reais do local e garantirmos a entrega do serviço sem imprevistos técnicos ou operacionais.",
+            "previsao_entrega": "06/08/2026",
+            "percentual_lucro": 25,
+            "percentual_bv": 0,
+            "percentual_imposto": 10,
+            "is_arquivado": false,
+            "id": "3b2768cf-cb5c-44fe-a38e-265f8d513de3",
+            "lead_id": "54b3b3bd-382c-4dec-9f98-4031b53d95e4",
+            "titulo_projeto": "Transmissão do Congresso de Gastroenterologia",
+            "data_criacao": "2026-02-03",
+            "validade_dias": 15,
+            "custo_total_projeto": 20320,
+            "valor_final_venda": 27940.000000000004,
+            "items": [
+                {
+                    "id": "5cec468f-6612-47e7-8412-0f1b1606c408",
+                    "categoria": "Produção",
+                    "descricao": "Operadores de Câmera Móvel",
+                    "qtd": 3,
+                    "custo_unitario_real": 1200,
+                    "hidden": false
+                },
+                {
+                    "id": "4052f754-467d-4564-8b98-ff2d86317a5a",
+                    "categoria": "Produção",
+                    "descricao": "Produção/Direção",
+                    "qtd": 1,
+                    "custo_unitario_real": 2500,
+                    "hidden": false
+                },
+                {
+                    "id": "860cbcee-5db5-4f6c-a4ac-55a66a9a6ab4",
+                    "categoria": "Produção",
+                    "descricao": "Operador de Câmera PTZ",
+                    "qtd": 1,
+                    "custo_unitario_real": 1000,
+                    "hidden": false
+                },
+                {
+                    "id": "3dcb88c9-867e-4804-ba18-bc259ab31f37",
+                    "categoria": "Produção",
+                    "descricao": "Operador de Áudio",
+                    "qtd": 1,
+                    "custo_unitario_real": 1200,
+                    "hidden": false
+                },
+                {
+                    "id": "f170eaa6-2a6a-4cdc-93ef-4ecc7fd1e67e",
+                    "categoria": "Produção",
+                    "descricao": "Operador de Transmissão",
+                    "qtd": 1,
+                    "custo_unitario_real": 1200,
+                    "hidden": false
+                },
+                {
+                    "id": "b951d6ae-d5cd-488d-91a0-10336db06404",
+                    "categoria": "Equipamentos",
+                    "descricao": "BlacMagic Pocket 4k",
+                    "qtd": 6,
+                    "custo_unitario_real": 500,
+                    "hidden": false
+                },
+                {
+                    "id": "55085260-e1f2-48c7-9d78-f969a08c906f",
+                    "categoria": "Equipamentos",
+                    "descricao": "Câmera PTZ 4k",
+                    "qtd": 3,
+                    "custo_unitario_real": 500,
+                    "hidden": false
+                },
+                {
+                    "id": "8abaceed-d3ee-4c29-af72-6ad4f8a94392",
+                    "categoria": "Equipamentos",
+                    "descricao": "Locação Microfones",
+                    "qtd": 3,
+                    "custo_unitario_real": 350,
+                    "hidden": false
+                },
+                {
+                    "id": "451f695c-1aa4-4146-90c2-74113fffce85",
+                    "categoria": "Produção",
+                    "descricao": "Assistentes",
+                    "qtd": 2,
+                    "custo_unitario_real": 600,
+                    "hidden": false
+                },
+                {
+                    "id": "91ead8b1-9a92-4b68-92b8-a94e5b7cf26e",
+                    "categoria": "Equipamentos",
+                    "descricao": "Tripes",
+                    "qtd": 9,
+                    "custo_unitario_real": 100,
+                    "hidden": false
+                },
+                {
+                    "id": "907f6614-cd39-4cda-b88e-3cb47f1f92a1",
+                    "categoria": "Equipamentos",
+                    "descricao": "Cabeamento Energia e HDMI",
+                    "qtd": 1,
+                    "custo_unitario_real": 900,
+                    "hidden": false
+                },
+                {
+                    "id": "f2062c99-5e7d-44ce-b12c-595cfed89b44",
+                    "categoria": "Equipamentos",
+                    "descricao": "Intercom Solidcom SE ",
+                    "qtd": 8,
+                    "custo_unitario_real": 40,
+                    "hidden": false
+                },
+                {
+                    "id": "b2a1cdfe-988e-406f-946e-fe855f733563",
+                    "categoria": "Equipamentos",
+                    "descricao": "Switcher de vídeo ATEM (mesa de corte)",
+                    "qtd": 3,
+                    "custo_unitario_real": 350,
+                    "hidden": false
+                },
+                {
+                    "id": "339f23d3-f06a-4233-b2d7-35222d0897f9",
+                    "categoria": "Logística",
+                    "descricao": "Alimentação",
+                    "qtd": 9,
+                    "custo_unitario_real": 50,
+                    "hidden": false
+                },
+                {
+                    "id": "af1e4e8d-33e4-4652-a3a9-a0190a2c5a7a",
+                    "categoria": "Logística",
+                    "descricao": "Deslocamento",
+                    "qtd": 9,
+                    "custo_unitario_real": 50,
+                    "hidden": false
+                }
+            ],
+            "objetivo_estrategico": "Produção: 1 diária (até 8 horas) de produção audiovisual, compreendendo a gestão e execução da transmissão simultânea de conteúdo entre 3 salas de cirurgia, localizada no Hospital das Clínicas e o auditório da Associação Médica, ambos na planta de Belo Horizonte/MG.",
+            "texto_apresentacao_ia": "Este projeto visa integrar o ambiente cirúrgico ao auditório da Associação Médica, proporcionando uma experiência imersiva e educativa de alta definição. A estrutura da Arreda foca na robustez do sinal e na redundância técnica, mobilizando uma equipe de 09 especialistas e 09 câmeras para assegurar que a transição entre as 03 salas de cirurgia seja dinâmica, estável e profissional.",
+            "especificacoes_entrega": "O projeto não contempla edições posteriores ao evento em tempo real.",
+            "validade_proposta": "2026-02-10",
+            "valor_final_ajustado": 27940.000000000004,
+            "is_fechado": false
+        },
+        {
+            "modo_cliente": true,
+            "etapas_processo": [
+                "1. Contrato",
+                "2. Briefing",
+                "3. Roteiro",
+                "4. Produção",
+                "5. Entrega",
+                ""
+            ],
+            "forma_pagamento": "Até 30 dias após a emissão da Nota Fiscal.\\n\\nDados Bancários:\\nArreda Conteúdo\\nBanco Inter (077)\\nAg 0001 | CC 1234567-8",
+            "avisos": "Entrega em até 48horas no link https://drive.google.com/drive/folders/1qPOKLYp0-7kbUwuc5g6QVwlN2-X-EbSx",
+            "previsao_entrega": "até 48hs",
+            "percentual_lucro": 10,
+            "percentual_bv": 0,
+            "percentual_imposto": 10,
+            "is_arquivado": true,
+            "id": "7936a304-88fd-4fd8-a66d-f6ab96f2de43",
+            "lead_id": "6fa3bf51-cae1-4671-be99-b9288be93266",
+            "titulo_projeto": "Gravação de set do DJ Fatsync",
+            "data_criacao": "2026-02-09",
+            "validade_dias": 7,
+            "validade_proposta": "2026-02-10",
+            "custo_total_projeto": 4940,
+            "valor_final_venda": 5977.400000000001,
+            "items": [
+                {
+                    "id": "598e7220-f91e-4e67-a001-dad79d00d238",
+                    "categoria": "Produção",
+                    "descricao": "Operador de Câmera",
+                    "qtd": 2,
+                    "custo_unitario_real": 1200,
+                    "hidden": false
+                },
+                {
+                    "id": "edd2289d-d9ec-4848-bab4-ad2746c7a115",
+                    "categoria": "Produção",
+                    "descricao": "Operador de Drone",
+                    "qtd": 1,
+                    "custo_unitario_real": 2100,
+                    "hidden": false
+                },
+                {
+                    "id": "b5b8a720-ff97-4d6d-8f31-68dc4b2b477d",
+                    "categoria": "Logística",
+                    "descricao": "Alimentação",
+                    "qtd": 3,
+                    "custo_unitario_real": 80,
+                    "hidden": false
+                },
+                {
+                    "id": "d666f756-b973-47c8-9e56-4513acc0468a",
+                    "categoria": "Logística",
+                    "descricao": "Deslocamento",
+                    "qtd": 1,
+                    "custo_unitario_real": 200,
+                    "hidden": false
+                }
+            ],
+            "objetivo_estrategico": "Gravação de set do DJ Fatsync",
+            "especificacoes_entrega": "Formato .MOV e/ou .BRAW",
+            "texto_apresentacao_ia": "",
+            "valor_final_ajustado": 5977.4,
+            "is_fechado": false
+        },
+        {
+            "modo_cliente": true,
+            "etapas_processo": [
+                "1. Contrato",
+                "2. Alinhamento",
+                "3. Cronograma",
+                "4. Ordem do dia",
+                "5. Produção",
+                "6. Aprovação",
+                "7. Entrega"
+            ],
+            "forma_pagamento": "Até 30 dias após a emissão da Nota Fiscal.\\n\\nDados Bancários:\\nArreda Conteúdo\\nBanco Inter (077)\\nAg 0001 | CC 1234567-8",
+            "avisos": "Informamos que este orçamento é na modalidade 'all-in', já contemplando todos os custos relativos a logística de deslocamento, hospedagem, transfer e alimentação da equipe, sem custos adicionais para o cliente.",
+            "previsao_entrega": "Vídeo Institucional / Principal entregue em até 72hs após o termino do evento.",
+            "percentual_lucro": 20,
+            "percentual_bv": 0,
+            "percentual_imposto": 10,
+            "is_arquivado": false,
+            "id": "069d37b3-2faf-4c50-95ba-bfd53a49f743",
+            "lead_id": "be13fd01-faf6-41e4-90d2-a6a1df401006",
+            "titulo_projeto": "Podcast e Cobertura CMO Summit ",
+            "data_criacao": "2026-02-13",
+            "validade_dias": 7,
+            "validade_proposta": "2026-02-20",
+            "custo_total_projeto": 17260,
+            "valor_final_venda": 22800,
+            "valor_final_ajustado": 22800,
+            "is_fechado": false,
+            "items": [
+                {
+                    "id": "d8d67d75-3102-497f-beff-73b2f4f2b0d7",
+                    "categoria": "Produção",
+                    "descricao": "Editor Sameday",
+                    "qtd": 2,
+                    "custo_unitario_real": 1500,
+                    "hidden": false
+                },
+                {
+                    "id": "44978469-8b9d-430c-8613-cc64f900f571",
+                    "categoria": "Produção",
+                    "descricao": "Videomaker",
+                    "qtd": 2,
+                    "custo_unitario_real": 1200,
+                    "hidden": false
+                },
+                {
+                    "id": "f287f923-acc7-4447-bc17-a66af6761018",
+                    "categoria": "Produção",
+                    "descricao": "Direção",
+                    "qtd": 2,
+                    "custo_unitario_real": 1500,
+                    "hidden": false
+                },
+                {
+                    "id": "1a4318f9-0e0b-44d7-9224-76acd4cb169d",
+                    "categoria": "Logística",
+                    "descricao": "Alimentação",
+                    "qtd": 2,
+                    "custo_unitario_real": 360,
+                    "hidden": false
+                },
+                {
+                    "id": "0f7be36e-3dc8-4797-a3a9-6bb1d4af5533",
+                    "categoria": "Logística",
+                    "descricao": "Transporte",
+                    "qtd": 2,
+                    "custo_unitario_real": 500,
+                    "hidden": false
+                },
+                {
+                    "id": "2325d9b3-9ed2-4a74-8000-e70d319600d7",
+                    "categoria": "Logística",
+                    "descricao": "Transfer",
+                    "qtd": 2,
+                    "custo_unitario_real": 120,
+                    "hidden": false
+                },
+                {
+                    "id": "b4f4053b-fd7a-4b3a-8f78-f09a8609d2a9",
+                    "categoria": "Logística",
+                    "descricao": "Hospedagem",
+                    "qtd": 2,
+                    "custo_unitario_real": 600,
+                    "hidden": false
+                },
+                {
+                    "id": "f7afb603-4444-476e-8fe9-f89ade2587f1",
+                    "categoria": "Equipamentos",
+                    "descricao": "Intercom Solidcom SE 8S",
+                    "qtd": 2,
+                    "custo_unitario_real": 200,
+                    "hidden": false
+                },
+                {
+                    "id": "7a769bc2-f1a6-45bb-acb6-a7b74e3b2f16",
+                    "categoria": "Equipamentos",
+                    "descricao": "Câmeras BlackMagic Pocket 4k",
+                    "qtd": 3,
+                    "custo_unitario_real": 400,
+                    "hidden": false
+                },
+                {
+                    "id": "1e0afa73-e2ae-4f50-80d2-793b8aa090b2",
+                    "categoria": "Equipamentos",
+                    "descricao": "Kit Microfones Podcast",
+                    "qtd": 2,
+                    "custo_unitario_real": 450,
+                    "hidden": false
+                },
+                {
+                    "id": "b668cc8a-d8c7-4765-bde7-4d007a186399",
+                    "categoria": "Produção",
+                    "descricao": "Operador de Áudio",
+                    "qtd": 2,
+                    "custo_unitario_real": 1000,
+                    "hidden": false
+                },
+                {
+                    "id": "d94a7bb4-c008-4335-bbd2-e01000991b7b",
+                    "categoria": "Equipamentos",
+                    "descricao": "Kit Iluminação",
+                    "qtd": 1,
+                    "custo_unitario_real": 1200,
+                    "hidden": false
+                }
+            ],
+            "objetivo_estrategico": "Estrutura para podcast, captação e edição sameday do evento CMO Summit para a Surfe Digital, que acontecerá em São Paulo nos dias 25 e 26  de março.",
+            "especificacoes_entrega": "Entrega de 06 vídeos de até 45 segundos e 01 vídeo de até 2 minutos, todos finalizados nos formatos 9:16 e 16:9 para redes sociais, incluindo estrutura completa para gravação de podcasts."
+        },
+        {
+            "modo_cliente": true,
+            "etapas_processo": [
+                "1. Contrato",
+                "2. Alinhamento",
+                "3. Cronograma",
+                "4. Ordem do dia",
+                "5. Produção",
+                "6. Aprovação",
+                "7. Entrega"
+            ],
+            "forma_pagamento": "Até 30 dias após a emissão da Nota Fiscal.\\n\\nDados Bancários:\\nArreda Conteúdo\\nBanco Inter (077)\\nAg 0001 | CC 1234567-8",
+            "avisos": "Informamos que este orçamento é na modalidade 'all-in', já contemplando todos os custos relativos a logística de deslocamento, hospedagem, transfer e alimentação da equipe, sem custos adicionais para o cliente.",
+            "previsao_entrega": "Vídeo Institucional / Principal entregue em até 72hs após o termino do evento.",
+            "percentual_lucro": 20,
+            "percentual_bv": 0,
+            "percentual_imposto": 10,
+            "is_arquivado": false,
+            "id": "6d5ab6b6-1d33-4ccb-95b9-bd4a0b0755e5",
+            "lead_id": "be13fd01-faf6-41e4-90d2-a6a1df401006",
+            "titulo_projeto": "Cobertura CMO Summit ",
+            "data_criacao": "2026-02-13",
+            "validade_dias": 7,
+            "validade_proposta": "2026-02-20",
+            "custo_total_projeto": 11560,
+            "valor_final_venda": 15259.2,
+            "valor_final_ajustado": 15300,
+            "is_fechado": false,
+            "items": [
+                {
+                    "id": "d8d67d75-3102-497f-beff-73b2f4f2b0d7",
+                    "categoria": "Produção",
+                    "descricao": "Editor Sameday",
+                    "qtd": 2,
+                    "custo_unitario_real": 1500,
+                    "hidden": false
+                },
+                {
+                    "id": "44978469-8b9d-430c-8613-cc64f900f571",
+                    "categoria": "Produção",
+                    "descricao": "Videomaker",
+                    "qtd": 2,
+                    "custo_unitario_real": 1200,
+                    "hidden": false
+                },
+                {
+                    "id": "f287f923-acc7-4447-bc17-a66af6761018",
+                    "categoria": "Produção",
+                    "descricao": "Direção",
+                    "qtd": 2,
+                    "custo_unitario_real": 1500,
+                    "hidden": false
+                },
+                {
+                    "id": "1a4318f9-0e0b-44d7-9224-76acd4cb169d",
+                    "categoria": "Logística",
+                    "descricao": "Alimentação",
+                    "qtd": 2,
+                    "custo_unitario_real": 360,
+                    "hidden": false
+                },
+                {
+                    "id": "0f7be36e-3dc8-4797-a3a9-6bb1d4af5533",
+                    "categoria": "Logística",
+                    "descricao": "Transporte",
+                    "qtd": 2,
+                    "custo_unitario_real": 500,
+                    "hidden": false
+                },
+                {
+                    "id": "2325d9b3-9ed2-4a74-8000-e70d319600d7",
+                    "categoria": "Logística",
+                    "descricao": "Transfer",
+                    "qtd": 2,
+                    "custo_unitario_real": 120,
+                    "hidden": false
+                },
+                {
+                    "id": "b4f4053b-fd7a-4b3a-8f78-f09a8609d2a9",
+                    "categoria": "Logística",
+                    "descricao": "Hospedagem",
+                    "qtd": 2,
+                    "custo_unitario_real": 600,
+                    "hidden": false
+                }
+            ],
+            "objetivo_estrategico": "Captação e edição sameday do evento CMO Summit para a Surfe Digital, que acontecerá em São Paulo nos dias 25 e 26  de março.",
+            "especificacoes_entrega": "Entrega de 06 vídeos de até 45 segundos e 01 vídeo de até 2 minutos, todos finalizados nos formatos 9:16 e 16:9 para redes sociais."
+        }
+    ],
+    "catalog": [
+        {
+            "id": "1",
+            "name": "Diária de Câmera FX6",
+            "lastPrice": 800,
+            "category": "Equipamentos",
+            "usageCount": 5
+        },
+        {
+            "id": "2",
+            "name": "Diária de Operador de Câmera",
+            "lastPrice": 1200,
+            "category": "Produção",
+            "usageCount": 10
+        },
+        {
+            "id": "3",
+            "name": "Alimentação (Catering)",
+            "lastPrice": 65,
+            "category": "Logística",
+            "usageCount": 20
+        },
+        {
+            "id": "4",
+            "name": "Transporte (Uber/Taxi)",
+            "lastPrice": 50,
+            "category": "Logística",
+            "usageCount": 15
+        },
+        {
+            "id": "5",
+            "name": "Locução Publicitária",
+            "lastPrice": 1500,
+            "category": "Outros",
+            "usageCount": 2
+        },
+        {
+            "id": "0b8c845c-60d1-431c-8eeb-aa207c0d7fa9",
+            "name": "Diária de Diretor de Cena e Fotografia",
+            "lastPrice": 2500,
+            "category": "Produção",
+            "usageCount": 8
+        },
+        {
+            "id": "fe7eefdd-ab6b-45f2-aafd-fd07a17d054b",
+            "name": "Locação Kit Câmera Cinema (FX6 + Lentes Prime)",
+            "lastPrice": 1200,
+            "category": "Equipamentos",
+            "usageCount": 8
+        },
+        {
+            "id": "90e7dca2-daec-49a6-ab98-98c17ff8fa7d",
+            "name": "Ajuda de Custo Alimentação e Transporte Equipe",
+            "lastPrice": 400,
+            "category": "Logística",
+            "usageCount": 8
+        },
+        {
+            "id": "dfa2d9d6-6eca-449d-8999-08475749356d",
+            "name": "Operador de Câmera Móvel",
+            "lastPrice": 1200,
+            "category": "Produção",
+            "usageCount": 11
+        },
+        {
+            "id": "02cc78a2-7b0d-4135-9efa-a569c7b606b7",
+            "name": "Produção/Direção",
+            "lastPrice": 2500,
+            "category": "Produção",
+            "usageCount": 31
+        },
+        {
+            "id": "aad4a27f-3779-472a-83af-ef4ac94907a5",
+            "name": "Operadora de Câmera PTZ",
+            "lastPrice": 1000,
+            "category": "Produção",
+            "usageCount": 11
+        },
+        {
+            "id": "54a2fada-ed7d-41ac-9887-bc048ccc4a92",
+            "name": "Operador de Áudio",
+            "lastPrice": 1000,
+            "category": "Produção",
+            "usageCount": 41
+        },
+        {
+            "id": "c980aee3-ac92-4b59-9d89-d6a0df7f6310",
+            "name": "Operador de Transmissão",
+            "lastPrice": 1200,
+            "category": "Produção",
+            "usageCount": 31
+        },
+        {
+            "id": "2bb1712b-f296-4c55-a9a6-0dc25b448c1e",
+            "name": "BlacMagic Pocket 4k",
+            "lastPrice": 500,
+            "category": "Equipamentos",
+            "usageCount": 31
+        },
+        {
+            "id": "eab8d35d-0577-44ad-b189-f5495114f852",
+            "name": "Câmera PTZ 4k",
+            "lastPrice": 500,
+            "category": "Equipamentos",
+            "usageCount": 31
+        },
+        {
+            "id": "b497b989-59e3-4f0d-a5ba-defcb13886f8",
+            "name": "Locação Microfones",
+            "lastPrice": 350,
+            "category": "Equipamentos",
+            "usageCount": 31
+        },
+        {
+            "id": "191f78d9-c51c-42a0-ab4a-055ef91e1e9d",
+            "name": "Assistente",
+            "lastPrice": 600,
+            "category": "Produção",
+            "usageCount": 11
+        },
+        {
+            "id": "57412878-622a-4ebb-987a-57e59e062f89",
+            "name": "Tripes",
+            "lastPrice": 100,
+            "category": "Equipamentos",
+            "usageCount": 31
+        },
+        {
+            "id": "32307a89-7d78-4ca9-ac72-751ea19cdc51",
+            "name": "Cabeamento Energia e HDMI",
+            "lastPrice": 900,
+            "category": "Equipamentos",
+            "usageCount": 31
+        },
+        {
+            "id": "794e1864-3658-48df-a315-026e81919b51",
+            "name": "Intercom Solidcom SE ",
+            "lastPrice": 40,
+            "category": "Equipamentos",
+            "usageCount": 31
+        },
+        {
+            "id": "f7ec3a9b-46e4-4bcb-9da4-21c9e7661573",
+            "name": "Switcher de vídeo ATEM (mesa de corte)",
+            "lastPrice": 350,
+            "category": "Equipamentos",
+            "usageCount": 31
+        },
+        {
+            "id": "8b875a33-b6be-49ec-8705-9ba3a57c6379",
+            "name": "Alimentação",
+            "lastPrice": 360,
+            "category": "Logística",
+            "usageCount": 55
+        },
+        {
+            "id": "00a9233e-88fd-489c-8732-ee40cb9ce017",
+            "name": "Deslocamento",
+            "lastPrice": 200,
+            "category": "Logística",
+            "usageCount": 36
+        },
+        {
+            "id": "3a09e53f-48fe-44cc-9851-a54e1d0e2f25",
+            "name": "Operadores de Câmera Móvel",
+            "lastPrice": 1200,
+            "category": "Produção",
+            "usageCount": 20
+        },
+        {
+            "id": "bb6a7698-0aaa-4730-b0f6-dd4183b64164",
+            "name": "Operador de Câmera PTZ",
+            "lastPrice": 1000,
+            "category": "Produção",
+            "usageCount": 20
+        },
+        {
+            "id": "6fc263d8-b37b-47b7-af6a-0e640883f9f5",
+            "name": "Assistentes",
+            "lastPrice": 600,
+            "category": "Produção",
+            "usageCount": 20
+        },
+        {
+            "id": "42a44ea9-09ca-4f6a-8f24-c03f22e06286",
+            "name": "Operador de Câmera",
+            "lastPrice": 1200,
+            "category": "Produção",
+            "usageCount": 13
+        },
+        {
+            "id": "5c34a8fd-798f-4f04-a252-600a00b79c79",
+            "name": "Operador de Drone",
+            "lastPrice": 2100,
+            "category": "Produção",
+            "usageCount": 11
+        },
+        {
+            "id": "71689385-cad1-458f-8dcf-d6fcde70321c",
+            "name": "Editor Sameday",
+            "lastPrice": 1500,
+            "category": "Produção",
+            "usageCount": 13
+        },
+        {
+            "id": "7d20ae3f-9da6-4323-a1de-4b6156c5d3ba",
+            "name": "Videomaker",
+            "lastPrice": 1200,
+            "category": "Produção",
+            "usageCount": 13
+        },
+        {
+            "id": "57a347cf-355d-4807-b69e-6171ee65b7bc",
+            "name": "Direção",
+            "lastPrice": 1500,
+            "category": "Produção",
+            "usageCount": 13
+        },
+        {
+            "id": "9394d4a6-6fd0-4642-bfc5-85803b548fac",
+            "name": "Transporte",
+            "lastPrice": 500,
+            "category": "Logística",
+            "usageCount": 13
+        },
+        {
+            "id": "be203c45-16ac-4365-9722-255c3967d170",
+            "name": "Transfer",
+            "lastPrice": 120,
+            "category": "Logística",
+            "usageCount": 13
+        },
+        {
+            "id": "0b7a386c-310b-46f1-b281-656d6c3751c5",
+            "name": "Hospedagem",
+            "lastPrice": 600,
+            "category": "Logística",
+            "usageCount": 13
+        },
+        {
+            "id": "2aa00935-f516-41de-9971-377b02bc1ba3",
+            "name": "Intercom Solidcom SE 8S",
+            "lastPrice": 200,
+            "category": "Equipamentos",
+            "usageCount": 10
+        },
+        {
+            "id": "af124a7b-eff2-43a2-8b9e-44d7257ff340",
+            "name": "Câmeras BlackMagic Pocket 4k",
+            "lastPrice": 400,
+            "category": "Equipamentos",
+            "usageCount": 10
+        },
+        {
+            "id": "112157ff-8bd6-462a-9201-2dfb46ce97dc",
+            "name": "Kit Microfones Podcast",
+            "lastPrice": 450,
+            "category": "Equipamentos",
+            "usageCount": 10
+        },
+        {
+            "id": "a4ec4835-8c25-45c6-a72f-d02af0972f34",
+            "name": "Kit Iluminação",
+            "lastPrice": 1200,
+            "category": "Equipamentos",
+            "usageCount": 8
+        }
+    ]
+}

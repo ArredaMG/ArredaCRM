@@ -16,6 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Leads', path: '/leads' },
+    { icon: Users, label: 'Diretório', path: '/clients' },
     { icon: FileText, label: 'Orçamentos', path: '/budgets' },
   ];
 
@@ -31,17 +32,16 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
         <div className="p-6 border-b border-slate-700 flex justify-center">
           <ArredaLogo className="w-40 text-white fill-white" />
         </div>
-        
+
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive 
-                    ? 'bg-amber-600 text-white font-medium' 
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                  ? 'bg-amber-600 text-white font-medium'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                 }`
               }
             >
@@ -65,23 +65,22 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
       {/* Mobile Header & Sidebar Overlay */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <header className="md:hidden bg-slate-900 text-white p-4 flex items-center justify-between shadow-md z-20">
-            <ArredaLogo className="w-32 text-white" />
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+          <ArredaLogo className="w-32 text-white" />
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </header>
-        
+
         {mobileMenuOpen && (
           <div className="fixed inset-0 bg-slate-900 z-10 pt-20 px-4 md:hidden">
             <nav className="space-y-4">
-               {navItems.map((item) => (
+              {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center space-x-3 px-4 py-3 rounded-lg text-lg ${
-                      isActive ? 'bg-amber-600 text-white' : 'text-slate-300'
+                    `flex items-center space-x-3 px-4 py-3 rounded-lg text-lg ${isActive ? 'bg-amber-600 text-white' : 'text-slate-300'
                     }`
                   }
                 >
@@ -102,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto p-4 md:p-8">
-           {children}
+          {children}
         </main>
       </div>
     </div>
