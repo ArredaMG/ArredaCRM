@@ -489,16 +489,16 @@ const Budgets: React.FC = () => {
               {/* Autocomplete Dropdown */}
               {isActive && showSuggestions && suggestions.length > 0 && (
                 <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-                  <div className="text-[10px] text-slate-400 px-3 py-1 font-semibold uppercase bg-slate-50 border-b border-slate-100">Sugestões</div>
+                  <div className="text-[10px] text-slate-400 px-3 py-1 font-semibold uppercase bg-slate-50 border-b border-slate-100">Sugestões (Tabela de Preços)</div>
                   {suggestions.map(s => (
                     <div
                       key={s.id}
                       onClick={() => selectSuggestion(s)}
                       className="px-3 py-2 hover:bg-amber-50 cursor-pointer flex justify-between items-center group transition-colors"
                     >
-                      <span className="text-sm text-slate-700">{s.name}</span>
+                      <span className="text-sm text-slate-700 font-medium">{s.name}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500 group-hover:text-amber-600 transition-colors">{formatCurrency(s.lastPrice)}</span>
+                        <span className="text-xs text-slate-500 group-hover:text-amber-600 transition-colors font-mono">{formatCurrency(s.lastPrice)}</span>
                         <Zap size={12} className="text-amber-400 fill-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
@@ -507,8 +507,8 @@ const Budgets: React.FC = () => {
               )}
 
               {isActive && tempItem.descricao.length > 2 && suggestions.length === 0 && (
-                <div className="absolute z-50 right-0 -top-8 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-md border border-green-200 flex items-center gap-1 shadow-sm">
-                  <Plus size={12} /> Novo Item (será salvo)
+                <div className="absolute z-50 right-0 -top-8 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-md border border-green-200 flex items-center gap-1 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                  <Plus size={12} /> Novo Item (será salvo na Tabela)
                 </div>
               )}
             </div>

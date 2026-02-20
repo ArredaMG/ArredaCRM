@@ -721,12 +721,7 @@ const Leads: React.FC = () => {
       >
         <Layout size={18} /> Pipeline de Prospecção
       </button>
-      <button
-        onClick={() => setActiveTab('directory')}
-        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'directory' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-      >
-        <Briefcase size={18} /> Clientes/Contatos
-      </button>
+      {/* Directory Tab Removed - moved to sidebar */}
       <button
         onClick={() => setActiveTab('archived')}
         className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'archived' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}

@@ -23,8 +23,12 @@ export interface Contact {
   cargo: string;
   email: string;
   telefone: string;
+  social_whatsapp?: string;
   social_instagram?: string;
   social_linkedin?: string;
+  social_facebook?: string;
+  social_youtube?: string;
+  links_adicionais?: SocialLink[];
   lead_id?: string;
   client_id?: string;
 }

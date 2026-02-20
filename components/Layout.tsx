@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArredaLogo } from '../constants';
-import { LayoutDashboard, Users, FileText, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, LogOut, Menu, X, DollarSign, BookUser } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,8 +16,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Leads', path: '/leads' },
-    { icon: Users, label: 'Diretório', path: '/clients' },
+    { icon: BookUser, label: 'Clientes', path: '/clients' },
     { icon: FileText, label: 'Orçamentos', path: '/budgets' },
+    { icon: DollarSign, label: 'Tabela de Preços', path: '/pricetable' },
   ];
 
   const handleLogout = () => {
@@ -30,7 +31,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white shadow-xl">
         <div className="p-6 border-b border-slate-700 flex justify-center">
-          <ArredaLogo className="w-40 text-white fill-white" />
+          <Link to="/" className="hover:opacity-80 transition-opacity">
+            <ArredaLogo className="w-40 text-white fill-white" />
+          </Link>
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
@@ -65,7 +68,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
       {/* Mobile Header & Sidebar Overlay */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <header className="md:hidden bg-slate-900 text-white p-4 flex items-center justify-between shadow-md z-20">
-          <ArredaLogo className="w-32 text-white" />
+          <Link to="/">
+            <ArredaLogo className="w-32 text-white" />
+          </Link>
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
